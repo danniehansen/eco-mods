@@ -41,82 +41,66 @@ namespace Eco.Mods.TechTree
     [RequireComponent(typeof(PropertyAuthComponent))]
     [RequireComponent(typeof(LinkComponent))]                   
     [RequireComponent(typeof(PublicStorageComponent))]                
-    public partial class ShippingContainerObject : 
-        WorldObject,    
-        IRepresentsItem
+    public partial class ShippingContainerObject : WorldObject, IRepresentsItem
     {
-        public override LocString DisplayName { get { return Localizer.DoStr("Shipping Container"); } } 
-
-        public override TableTextureMode TableTexture => TableTextureMode.Wood; 
-
+        public override LocString DisplayName { get { return Localizer.DoStr("Shipping Container"); } }
+        public override TableTextureMode TableTexture => TableTextureMode.Wood;
         public virtual Type RepresentedItemType { get { return typeof(ShippingContainerItem); } }
 
 
         public class InventoryMultiply : InventoryRestriction
         {
             public override int Priority => base.Priority - 15;
-
             public override LocString Message => Localizer.DoStr("Inventory Full");
-
             public override int MaxAccepted(Item item, int currentQuantity) =>  item.MaxStackSize > 1  ? 300 : ( item.Tags().Any(x => x.Name == "Tools") ? 1 : 5);
-
             public override bool SurpassStackSize => true;
-
         }
-
 
         protected override void Initialize()
         {
-
             var storage = this.GetComponent<PublicStorageComponent>();
             storage.Initialize(48);
             storage.Storage.AddInvRestriction(new NotCarriedRestriction()); // can't store block or large items
             storage.Storage.AddInvRestriction(new InventoryMultiply());
         }
-       
     }
 
     [Serialized]
     [LocDisplayName("Shipping Container")]
     [Ecopedia("Crafted Objects", "Storage", createAsSubPage: true, displayOnPage: true)]
-
-    public partial class ShippingContainerItem :
-        WorldObjectItem<ShippingContainerObject> 
+    public partial class ShippingContainerItem : WorldObjectItem<ShippingContainerObject> 
     {
         public override LocString DisplayDescription  { get { return Localizer.DoStr("Large end game storage."); } }
 
         static ShippingContainerItem()
         {
             WorldObject.AddOccupancy<ShippingContainerObject>(new List<BlockOccupancy>(){
-            new BlockOccupancy(new Vector3i(0, 0, 0)),
-            new BlockOccupancy(new Vector3i(1, 0, 0)),
-            new BlockOccupancy(new Vector3i(2, 0, 0)),
-            new BlockOccupancy(new Vector3i(3, 0, 0)),
-            new BlockOccupancy(new Vector3i(4, 0, 0)),
-            new BlockOccupancy(new Vector3i(0, 0, 1)),
-            new BlockOccupancy(new Vector3i(1, 0, 1)),
-            new BlockOccupancy(new Vector3i(2, 0, 1)),
-            new BlockOccupancy(new Vector3i(3, 0, 1)),
-            new BlockOccupancy(new Vector3i(4, 0, 1)),
-            new BlockOccupancy(new Vector3i(0, 1, 0)),
-            new BlockOccupancy(new Vector3i(1, 1, 0)),
-            new BlockOccupancy(new Vector3i(2, 1, 0)),
-            new BlockOccupancy(new Vector3i(3, 1, 0)),
-            new BlockOccupancy(new Vector3i(4, 1, 0)),
-            new BlockOccupancy(new Vector3i(0, 1, 1)),
-            new BlockOccupancy(new Vector3i(1, 1, 1)),
-            new BlockOccupancy(new Vector3i(2, 1, 1)),
-            new BlockOccupancy(new Vector3i(3, 1, 1)),
-            new BlockOccupancy(new Vector3i(4, 1, 1)),
+                new BlockOccupancy(new Vector3i(0, 0, 0)),
+                new BlockOccupancy(new Vector3i(1, 0, 0)),
+                new BlockOccupancy(new Vector3i(2, 0, 0)),
+                new BlockOccupancy(new Vector3i(3, 0, 0)),
+                new BlockOccupancy(new Vector3i(4, 0, 0)),
+                new BlockOccupancy(new Vector3i(0, 0, 1)),
+                new BlockOccupancy(new Vector3i(1, 0, 1)),
+                new BlockOccupancy(new Vector3i(2, 0, 1)),
+                new BlockOccupancy(new Vector3i(3, 0, 1)),
+                new BlockOccupancy(new Vector3i(4, 0, 1)),
+                new BlockOccupancy(new Vector3i(0, 1, 0)),
+                new BlockOccupancy(new Vector3i(1, 1, 0)),
+                new BlockOccupancy(new Vector3i(2, 1, 0)),
+                new BlockOccupancy(new Vector3i(3, 1, 0)),
+                new BlockOccupancy(new Vector3i(4, 1, 0)),
+                new BlockOccupancy(new Vector3i(0, 1, 1)),
+                new BlockOccupancy(new Vector3i(1, 1, 1)),
+                new BlockOccupancy(new Vector3i(2, 1, 1)),
+                new BlockOccupancy(new Vector3i(3, 1, 1)),
+                new BlockOccupancy(new Vector3i(4, 1, 1)),
             });
         }
-
-        
-
     }
+
     [RequiresSkill(typeof(SmeltingSkill), 4)]
-    public partial class ShippingContainerRecipe :
-        RecipeFamily
+    public partial class ShippingContainerRecipe : RecipeFamily
     {
         public ShippingContainerRecipe()
         {
@@ -125,10 +109,10 @@ namespace Eco.Mods.TechTree
                 Localizer.DoStr("Shipping Container"),
                 new IngredientElement[]
                 {
-               new IngredientElement(typeof(SteelBarItem), 8),
-               new IngredientElement(typeof(LumberItem) , 12),
+                    new IngredientElement(typeof(SteelBarItem), 8),
+                    new IngredientElement(typeof(LumberItem) , 12),
                 },
-               new CraftingElement<ShippingContainerItem>()
+                new CraftingElement<ShippingContainerItem>()
             );
             this.Recipes = new List<Recipe> { product };
             this.LaborInCalories = CreateLaborInCaloriesValue(800); 
