@@ -17,3 +17,9 @@ https://eco.old.mod.io/wire-fences (DemonDog1602967796)
 
 Origin:
 https://eco.old.mod.io/wooden-bracers-for-eco (abrasivehorizon)
+
+## Log Pickup, Debris Clear, and Stump Removal
+[Download](Mods/UserCode/Objects/TreeObject.override.cs)
+
+Origin:
+https://mod.io/g/eco/m/log-pickup-debris-clear-and-stump-removal (Loco2824)
