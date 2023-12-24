@@ -55,30 +55,31 @@ namespace Eco.Mods.Organisms
 
         public BSONObject ToUpdateBson()
         {
-            var bson    = BSONObject.New;
-            bson["id"]  = this.ID;
+            var bson = BSONObject.New;
+            bson["id"] = this.ID;
             bson["pos"] = this.Position;
             bson["rot"] = this.Rotation;
-            bson["v"]   = this.Velocity;
+            bson["v"] = this.Velocity;
             return bson;
         }
 
         public BSONObject ToInitialBson()
         {
-            var bson          = BSONObject.New;
-            bson["id"]        = this.ID;
-            bson["start"]     = this.SliceStart;
-            bson["end"]       = this.SliceEnd;
-            bson["pos"]       = this.Position;
-            bson["rot"]       = this.Rotation;
-            bson["v"]         = this.Velocity;
+            var bson = BSONObject.New;
+            bson["id"] = this.ID;
+            bson["start"] = this.SliceStart;
+            bson["end"] = this.SliceEnd;
+            bson["pos"] = this.Position;
+            bson["rot"] = this.Rotation;
+            bson["v"] = this.Velocity;
             bson["collected"] = this.Collected;
             return bson;
         }
     }
 
     // gameplay version of simulations tree
-    [Serialized] public class TreeEntity : Tree, IDamageable, IHasInteractions
+    [Serialized]
+    public class TreeEntity : Tree, IDamageable, IHasInteractions
     {
         readonly object sync = new();
 
@@ -130,7 +131,7 @@ namespace Eco.Mods.Organisms
                     return false;
                 var block = World.GetBlock(this.Position.XYZi() + (Vector3i.Up * (this.currentGrowthThreshold + 1)));
                 if (!block.Is<Empty>() && block.GetType() != this.Species.BlockType)
-                        return true; // can't grow until obstruction is removed
+                    return true; // can't grow until obstruction is removed
                 return false;
             }
         }
@@ -176,15 +177,15 @@ namespace Eco.Mods.Organisms
         int GetBasePickupSize(TrunkPiece trunk) => Math.Max(Mathf.RoundUpToInt((trunk.SliceEnd - trunk.SliceStart) * this.ResourceMultiplier), 1);
 
         [Interaction(InteractionTrigger.InteractKey, requiredEnvVars: new[] { "id" }, animationDriven: true)]                        //A definition for when we can actually pickup
-        public void PickUp(Player player, InteractionTriggerInfo trigger, InteractionTarget target) { if (target.TryGetParameter("id", out var id)) this.PickupLog(player, (Guid) id, target.HitPos); }
+        public void PickUp(Player player, InteractionTriggerInfo trigger, InteractionTarget target) { if (target.TryGetParameter("id", out var id)) this.PickupLog(player, (Guid)id, target.HitPos); }
 
         #region IController
         int controllerID;
 
         public ref int ControllerID => ref this.controllerID;
-    #pragma warning disable CS0067
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler PropertyChanged; //Disabled warning for property not being used, but its needed for change notifications to work
-    #pragma warning restore CS0067
+#pragma warning restore CS0067
         #endregion
 
         public TreeEntity(TreeSpecies species, WorldPosition3i position, PlantPack plantPack)
@@ -199,10 +200,10 @@ namespace Eco.Mods.Organisms
         {
             base.Initialize();
             this.UpdateGrowthOccupancy();
-            this.minimapObject.Position              = this.Position;
-            this.minimapObject.Type                  = this.Species.GetType();
+            this.minimapObject.Position = this.Position;
+            this.minimapObject.Type = this.Species.GetType();
             this.minimapObject.DisplayObjectCategory = Localizer.DoStr("Trees");
-            this.minimapObject.DisplayName           = this.Species.DisplayName;
+            this.minimapObject.DisplayName = this.Species.DisplayName;
 
             this.UpdateMinimapObjectScale();
             if (!this.Fallen)
@@ -214,8 +215,8 @@ namespace Eco.Mods.Organisms
         {
             if (this.Species == null || this.Fallen) return;
 
-            float scaleXZ            = this.Species.XZScaleRange.Interpolate(this.scaleRandomValue);                      // Get a random XZ size based on the species range
-            float scaleY             = this.Species.YScaleRange.Interpolate(this.scaleRandomValue);                       // Get a random Y  size based on the species range
+            float scaleXZ = this.Species.XZScaleRange.Interpolate(this.scaleRandomValue);                      // Get a random XZ size based on the species range
+            float scaleY = this.Species.YScaleRange.Interpolate(this.scaleRandomValue);                       // Get a random Y  size based on the species range
             this.minimapObject.Scale = new Vector3(scaleXZ, scaleY, scaleXZ) * Mathf.Lerp(0.25f, 1f, this.GrowthPercent); // Scale multiplied by growth percent (clamped min so newborn trees can be seen in minimap).
         }
 
@@ -237,31 +238,34 @@ namespace Eco.Mods.Organisms
                 if (trunk?.IsCollectedOrNotValid == false)
                 {
                     var resourceType = this.Species.ResourceItemType;
-                    var resource     = Item.Get(resourceType);
-                    var baseCount    = this.GetBasePickupSize(trunk);
-                    var yield        = resource.Yield;
-                    var bonusItems   = yield?.GetCurrentValueInt(player.User.DynamicValueContext, null) ?? 0;
-                    var numItems     = baseCount + bonusItems;
-                    var carried      = player.User.Inventory.Carried;
+                    var resource = Item.Get(resourceType);
+                    var baseCount = this.GetBasePickupSize(trunk);
+                    var yield = resource.Yield;
+                    var bonusItems = yield?.GetCurrentValueInt(player.User.DynamicValueContext, null) ?? 0;
+                    var numItems = baseCount + bonusItems;
+                    var carried = player.User.Inventory.Carried;
 
                     if (numItems > 0)
                     {
                         if (!carried.IsEmpty) // Early tests: neeed to check type mismatch and max quantity.
                         {
-                            if      (carried.Stacks.First().Item.Type != resourceType)                    { player.Error(Localizer.Format("You are already carrying {0:items} and cannot pick up {1:items}.", carried.Stacks.First().Item.UILink(LinkConfig.ShowPlural), resource.UILink(LinkConfig.ShowPlural)));  return; }
-                            else if (carried.Stacks.First().Quantity + numItems > resource.MaxStackSize)  { player.Error(Localizer.Format("You can't carry {0:n0} more {1:items} ({2} max).", numItems, resource.UILink(numItems != 1 ? LinkConfig.ShowPlural : 0), resource.MaxStackSize));                        return; }
+                            if (carried.Stacks.First().Item.Type != resourceType) { player.Error(Localizer.Format("You are already carrying {0:items} and cannot pick up {1:items}.", carried.Stacks.First().Item.UILink(LinkConfig.ShowPlural), resource.UILink(LinkConfig.ShowPlural))); return; }
+                            else if (carried.Stacks.First().Quantity + numItems > resource.MaxStackSize) { player.Error(Localizer.Format("You can't carry {0:n0} more {1:items} ({2} max).", numItems, resource.UILink(numItems != 1 ? LinkConfig.ShowPlural : 0), resource.MaxStackSize)); return; }
                         }
 
                         // Prepare a game action pack.
                         var pack = new GameActionPack();
-                            pack.AddPostEffect          (() => { trunk.Collected = true; this.RPC("DestroyLog", logID); this.MarkDirty(); this.CheckDestroy(); }); // Delete the log if succseeded.
-                            pack.GetOrCreateInventoryChangeSet   (carried, player.User).AddItems(this.Species.ResourceItemType, numItems);                         // Add items to the changeset.
-                            pack.AddGameAction          (new HarvestOrHunt() {   Species         = this.Species.GetType(),
-                                                                                 HarvestedStacks = new ItemStack(Item.Get(this.Species.ResourceItemType), numItems).SingleItemAsEnumerable(),
-                                                                                 ActionLocation  = pickupPosition.XYZi(),
-                                                                                 Citizen         = player.User,
-                                                                                 ChopperUserID   = this.ChopperUserID});
-                            pack.TryPerform(player.User); // Try to perform the action and apply changes & effects.
+                        pack.AddPostEffect(() => { trunk.Collected = true; this.RPC("DestroyLog", logID); this.MarkDirty(); this.CheckDestroy(); }); // Delete the log if succseeded.
+                        pack.GetOrCreateInventoryChangeSet(carried, player.User).AddItems(this.Species.ResourceItemType, numItems);                         // Add items to the changeset.
+                        pack.AddGameAction(new HarvestOrHunt()
+                        {
+                            Species = this.Species.GetType(),
+                            HarvestedStacks = new ItemStack(Item.Get(this.Species.ResourceItemType), numItems).SingleItemAsEnumerable(),
+                            ActionLocation = pickupPosition.XYZi(),
+                            Citizen = player.User,
+                            ChopperUserID = this.ChopperUserID
+                        });
+                        pack.TryPerform(player.User); // Try to perform the action and apply changes & effects.
                     }
                 }
             }
@@ -273,7 +277,7 @@ namespace Eco.Mods.Organisms
         {
             this.GetLeafByID(leafID, out var branchID, out var leafIdOnBranch);
             TreeBranch branch = this.branches[branchID];
-            LeafBunch leaf    = branch.Leaves[leafIdOnBranch];
+            LeafBunch leaf = branch.Leaves[leafIdOnBranch];
 
             if (leaf.Health > 0)
             {
@@ -310,29 +314,29 @@ namespace Eco.Mods.Organisms
 
                 // if this is a tiny slice, clamp to the nearest valid size
                 const float minPieceResources = 5f;
-                var         minPieceSize      = minPieceResources / this.ResourceMultiplier;
-                var         targetSize        = trunkPiece.SliceEnd - trunkPiece.SliceStart;
-                var         targetResources   = targetSize * this.ResourceMultiplier;
-                var         newPieceSize      = trunkPiece.SliceEnd - slicePoint;
-                var         newPieceResources = newPieceSize * this.ResourceMultiplier;
+                var minPieceSize = minPieceResources / this.ResourceMultiplier;
+                var targetSize = trunkPiece.SliceEnd - trunkPiece.SliceStart;
+                var targetResources = targetSize * this.ResourceMultiplier;
+                var newPieceSize = trunkPiece.SliceEnd - slicePoint;
+                var newPieceResources = newPieceSize * this.ResourceMultiplier;
                 if (targetResources <= minPieceResources) return Result.FailLocStr("This log cannot be sliced any smaller");          // can't slice, too small
 
-                if (targetResources < (2 * minPieceResources))               slicePoint = trunkPiece.SliceStart + (.5f * targetSize); // if smaller than 2x the min size, slice directly in half
-                else if (newPieceSize < minPieceSize)                        slicePoint = trunkPiece.SliceEnd - minPieceSize;         // round down to nearest slice point where the resulting block will be the size of the log
+                if (targetResources < (2 * minPieceResources)) slicePoint = trunkPiece.SliceStart + (.5f * targetSize); // if smaller than 2x the min size, slice directly in half
+                else if (newPieceSize < minPieceSize) slicePoint = trunkPiece.SliceEnd - minPieceSize;         // round down to nearest slice point where the resulting block will be the size of the log
                 else if (slicePoint - trunkPiece.SliceStart <= minPieceSize) slicePoint = trunkPiece.SliceStart + minPieceSize;       // round up
 
                 var sourceID = trunkPiece.ID;
                 // slice and assign new IDs (New piece is always the back end of the source piece)
                 var newPiece = new TrunkPiece()
                 {
-                    ID         = Guid.NewGuid(),
+                    ID = Guid.NewGuid(),
                     SliceStart = slicePoint,
-                    SliceEnd   = trunkPiece.SliceEnd,
-                    Position   = trunkPiece.Position,
-                    Rotation   = trunkPiece.Rotation,
+                    SliceEnd = trunkPiece.SliceEnd,
+                    Position = trunkPiece.Position,
+                    Rotation = trunkPiece.Rotation,
                 };
                 this.trunkPieces.Add(newPiece);
-                trunkPiece.ID       = Guid.NewGuid();
+                trunkPiece.ID = Guid.NewGuid();
                 trunkPiece.SliceEnd = slicePoint;
 
                 // ensure the pieces are listed in order
@@ -423,21 +427,21 @@ namespace Eco.Mods.Organisms
 
         ChopTree CreateChopTreeAction(INetObject damager, Item tool, bool felled, bool branches = false) => new ChopTree()
         {
-            Citizen          = (damager as Player)?.User,
-            Species          = this.Species.GetType(),
-            ChopperUserID    = this.ChopperUserID,
-            ActionLocation   = this.Position.XYZi(),
-            AccessNeeded     = AccessType.FullAccess,
-            Felled           = felled,
+            Citizen = (damager as Player)?.User,
+            Species = this.Species.GetType(),
+            ChopperUserID = this.ChopperUserID,
+            ActionLocation = this.Position.XYZi(),
+            AccessNeeded = AccessType.FullAccess,
+            Felled = felled,
             BranchesTargeted = branches,
-            GrowthPercent    = this.GrowthPercent * 100,
-            ToolUsed         = tool
+            GrowthPercent = this.GrowthPercent * 100,
+            ToolUsed = tool
         };
 
         void FellTree(INetObject killer)
         {
             // create the initial trunk piece
-            var trunkPiece = new TrunkPiece() { ID = Guid.NewGuid(), SliceStart = 0f, SliceEnd = 1f,  };
+            var trunkPiece = new TrunkPiece() { ID = Guid.NewGuid(), SliceStart = 0f, SliceEnd = 1f, };
 
             // clear tree occupancy
             if (this.Species.BlockType != null)
@@ -487,11 +491,11 @@ namespace Eco.Mods.Organisms
 
             //If the tree is really young, just outright uproot and destroy it
             if (this.IsSapling) return this.TryKillSapling(pack, damager, tool);
-            else if (target.TryGetParameter(BlockParameterNames.IsTrunk, out _))              return this.TryDamageTrunk (pack, damager, amount, tool);
-            else if (target.TryGetParameter(BlockParameterNames.IsStump, out _))              return this.TryDamageStump (pack, damager, amount, tool);
-            else if (target.TryGetParameter(BlockParameterNames.Branch,  out var branchID))   return this.TryDamageBranch(pack, damager, amount, (int)branchID,     tool);
-            else if (target.TryGetParameter(BlockParameterNames.Slice,   out var slicePoint)) return this.TrySliceTrunk  (pack, damager, amount, (float)slicePoint, tool);
-            else if (target.TryGetParameter(BlockParameterNames.Leaf,    out var leafID))     return this.TryDamageLeaf  (pack, damager, amount, (int)leafID,       tool);
+            else if (target.TryGetParameter(BlockParameterNames.IsTrunk, out _)) return this.TryDamageTrunk(pack, damager, amount, tool);
+            else if (target.TryGetParameter(BlockParameterNames.IsStump, out _)) return this.TryDamageStump(pack, damager, amount, tool);
+            else if (target.TryGetParameter(BlockParameterNames.Branch, out var branchID)) return this.TryDamageBranch(pack, damager, amount, (int)branchID, tool);
+            else if (target.TryGetParameter(BlockParameterNames.Slice, out var slicePoint)) return this.TrySliceTrunk(pack, damager, amount, (float)slicePoint, tool);
+            else if (target.TryGetParameter(BlockParameterNames.Leaf, out var leafID)) return this.TryDamageLeaf(pack, damager, amount, (int)leafID, tool);
 
             DebugUtils.Fail($"Failed to damage a tree - tree is not a sapling and we can't determine which part of the tree should be damaged because of missing parameters in {nameof(target)}.");
             pack.EarlyResult = Result.FailedNoMessage;
@@ -516,7 +520,7 @@ namespace Eco.Mods.Organisms
         private GameActionPack TryKillSapling(GameActionPack pack, INetObject damager, Item tool)
         {
             pack.AddGameAction(this.CreateChopTreeAction(damager, tool, true));
-            pack.AddPostEffect(() => EcoSim.PlantSim.DestroyPlant(this, DeathType.Harvesting, killer:damager is Player damagerPlayer ? damagerPlayer.User : null));
+            pack.AddPostEffect(() => EcoSim.PlantSim.DestroyPlant(this, DeathType.Harvesting, killer: damager is Player damagerPlayer ? damagerPlayer.User : null));
             return pack;
         }
 
@@ -573,11 +577,11 @@ namespace Eco.Mods.Organisms
                 {
                     pack.AddGameAction(new ChopStump()
                     {
-                        Citizen        = player.User,
+                        Citizen = player.User,
                         ActionLocation = this.Position.XYZi(),
-                        Destroyed      = this.stumpHealth <= amount,
-                        Species        = this.Species.GetType(),
-                        ToolUsed       = tool
+                        Destroyed = this.stumpHealth <= amount,
+                        Species = this.Species.GetType(),
+                        ToolUsed = tool
                     });
                 }
 
@@ -750,9 +754,9 @@ namespace Eco.Mods.Organisms
         public override bool IsNotRelevant(INetObjectViewer viewer)
         {
             if (viewer is not IWorldObserver observer) return false;                                   // only can check for IWorldObserver
-            var closestWrapped     = World.ClosestWrappedLocation(observer.Position, this.Position);
+            var closestWrapped = World.ClosestWrappedLocation(observer.Position, this.Position);
             var notVisibleDistance = observer.ChunkViewDistance.NotVisible;
-            var v                  = closestWrapped - observer.Position;
+            var v = closestWrapped - observer.Position;
             if (Mathf.Abs(v.X) >= notVisibleDistance || Mathf.Abs(v.Z) >= notVisibleDistance)         // check if any of horizontal distances to viewer length enough to go out of view
             {
                 if (this.Controller != null && this.Controller.Equals(viewer))                        // in that case reset owning physics controller

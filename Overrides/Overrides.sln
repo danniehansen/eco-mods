@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.4.33213.308
+VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WireFences", "WireFences.csproj", "{1D9A10A0-1FB1-4697-A2D1-0A55AA597154}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overrides", "Overrides.csproj", "{9F03D4DD-F4DB-4738-BD12-932759182180}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1D9A10A0-1FB1-4697-A2D1-0A55AA597154}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D9A10A0-1FB1-4697-A2D1-0A55AA597154}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D9A10A0-1FB1-4697-A2D1-0A55AA597154}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D9A10A0-1FB1-4697-A2D1-0A55AA597154}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F03D4DD-F4DB-4738-BD12-932759182180}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F03D4DD-F4DB-4738-BD12-932759182180}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F03D4DD-F4DB-4738-BD12-932759182180}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F03D4DD-F4DB-4738-BD12-932759182180}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {82E21BFE-B3D8-4A4B-82CA-4F32D46B2BA8}
+		SolutionGuid = {37A57F5B-A0F2-4C42-AD8F-77C3FC06FC75}
 	EndGlobalSection
 EndGlobal
