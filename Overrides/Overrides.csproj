@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Config\LogDebrisStump.eco.template" />
+    <None Remove="Config\LogDebrisStumpCleanup.eco.template" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Config\LogDebrisStump.eco.template" />
+    <Compile Include="Config\LogDebrisStumpCleanup.eco.template" />
   </ItemGroup>
 
   <ItemGroup>

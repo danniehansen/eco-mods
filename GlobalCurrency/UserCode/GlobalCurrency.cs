@@ -16,16 +16,16 @@ namespace Eco.Mods.TechTree
     [Localized]
     public class GlobalCurrencyConfig : Singleton<GlobalCurrencyConfig>
     {
-        [LocDescription("Name of the global currency used on the server. Needs to match 1:1 with the currency name.")]
+        [LocDescription("Name of the global currency used on the server.")]
         public string? GlobalCurrencyName { get; set; }
 
-        [LocDescription("How much to give new users joining of global currency. 0 for none.")]
+        [LocDescription("Welcome gift in global currency to give new users joining. 0 for none.")]
         public int NewUsersGift { get; set; }
 
         [LocDescription("Title for message window when welcoming a new user. Empty for no welcome window.")]
         public string? MessageWelcomeTitle { get; set; }
 
-        [LocDescription("Body for message window when welcoming a new user.")]
+        [LocDescription("Body for message window when welcoming a new user. Empty for no welcome window.")]
         public string? MessageWelcomeBody { get; set; }
     }
 
@@ -44,7 +44,6 @@ namespace Eco.Mods.TechTree
         {
             this.status = "Reading config";
             config = new PluginConfig<GlobalCurrencyConfig>("GlobalCurrency");
-            config.SaveAsAsync("GlobalCurrency.eco.template");
             this.status = "";
 
             // UserManager.OnUserLoggedIn.Add(OnUserLogin);
@@ -63,12 +62,12 @@ namespace Eco.Mods.TechTree
         {
         }
 
-        [ChatCommand("Create the global currency and treasury if it doesnt already exist", "em-create", ChatAuthorizationLevel.Admin)]
+        [ChatCommand("Create the global currency and treasury if it doesnt already exist", "gc-create", ChatAuthorizationLevel.Admin)]
         public static void Create(User user)
         {
             if (config == null)
             {
-                user.TempServerMessage(Localizer.DoStr("[GlobalCurrency Unable to locate config]"));
+                user.TempServerMessage(Localizer.DoStr("[GlobalCurrency] Unable to locate config"));
                 return;
             }
 

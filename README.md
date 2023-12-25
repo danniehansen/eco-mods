@@ -5,3 +5,9 @@
 
 Origin:
 https://mod.io/g/eco/m/log-pickup-debris-clear-and-stump-removal (Loco2824)
+
+## Global currency
+[Download](Release/globalcurrency.zip)
+
+Link:
+https://mod.io/g/eco/m/globalcurrency
