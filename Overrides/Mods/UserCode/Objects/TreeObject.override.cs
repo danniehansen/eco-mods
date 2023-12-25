@@ -6,6 +6,7 @@ namespace Eco.Mods.Organisms
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Eco.Core.Utils;
     using Eco.Core.Items;
     using Eco.Gameplay.Interactions;
@@ -34,6 +35,8 @@ namespace Eco.Mods.Organisms
     using Vector3 = System.Numerics.Vector3;
     using System.ComponentModel;
     using Eco.Gameplay.Interactions.Interactors;
+    using Eco.Mods.TechTree;
+    using Eco.ModKit.Internal;
 
     [Serialized]
     [Tag(BlockTags.Choppable)]
@@ -229,11 +232,10 @@ namespace Eco.Mods.Organisms
 
         void PickupLog(Player player, Guid logID, Vector3 pickupPosition)
         {
+            // bool instantPickup = false;
+
             lock (this.sync)
             {
-                if (!this.CanHarvest)
-                    player.ErrorLocStr("Log is not ready for harvest.  Remove all branches first.");
-
                 var trunk = this.trunkPieces.FirstOrDefault(p => p.ID == logID);
                 if (trunk?.IsCollectedOrNotValid == false)
                 {
@@ -251,6 +253,29 @@ namespace Eco.Mods.Organisms
                         {
                             if (carried.Stacks.First().Item.Type != resourceType) { player.Error(Localizer.Format("You are already carrying {0:items} and cannot pick up {1:items}.", carried.Stacks.First().Item.UILink(LinkConfig.ShowPlural), resource.UILink(LinkConfig.ShowPlural))); return; }
                             else if (carried.Stacks.First().Quantity + numItems > resource.MaxStackSize) { player.Error(Localizer.Format("You can't carry {0:n0} more {1:items} ({2} max).", numItems, resource.UILink(numItems != 1 ? LinkConfig.ShowPlural : 0), resource.MaxStackSize)); return; }
+                        }
+
+                        var canPickup = this.GetBasePickupSize(trunk) <= MaxTrunkPickupSize;
+                        var loggingSkill = player.User.Skillset.GetSkill(typeof(LoggingSkill));
+
+                        if (LogDebrisStumpCleanup.config.Config.PickupTrunkEnabled && this.trunkPieces.Count == 1)
+                        {
+                            if (
+                                LogDebrisStumpCleanup.config.Config.PickupTrunkLogging > 0 &&
+                                (
+                                    loggingSkill == null ||
+                                    loggingSkill.Level < LogDebrisStumpCleanup.config.Config.PickupTrunkLogging
+                                )
+                            )
+                            {
+                                player.Error(Localizer.Format("Logging skill level {0:n0} is required to pickup entire trunk", LogDebrisStumpCleanup.config.Config.PickupTrunkLogging));
+                                return;
+                            }
+                        }
+                        else if (!canPickup)
+                        {
+                            player.ErrorLocStr("Log is too large to pick up, slice into smaller pieces first.");
+                            return;
                         }
 
                         // Prepare a game action pack.
@@ -412,10 +437,20 @@ namespace Eco.Mods.Organisms
                                 Citizen = player.User
                             }, player?.User);
 
-                            var changes = InventoryChangeSet.New(player.User.Inventory, player.User);
-                            var debrisResources = this.Species.DebrisResources;
-                            debrisResources.ForEach(x => changes.AddItems(x.Key, x.Value.RandInt));
-                            changes.TryApply();
+                            // debris cleanup mod.
+                            var loggingSkill = player.User.Skillset.GetSkill(typeof(LoggingSkill));
+                            if (LogDebrisStumpCleanup.config.Config.CleanDebrisEnabled && loggingSkill != null && loggingSkill.Level >= LogDebrisStumpCleanup.config.Config.CleanDebrisLogging)
+                            {
+                                var changes = InventoryChangeSet.New(player.User.Inventory, player.User);
+                                var debrisResources = this.Species.DebrisResources;
+                                debrisResources.ForEach(x => changes.AddItems(x.Key, x.Value.RandInt));
+                                changes.TryApply();
+                            }
+                            else
+                            {
+                                World.SetBlock(this.Species.DebrisType, abovepos);
+                                player.SpawnBlockEffect(abovepos, this.Species.DebrisType, BlockEffect.Place);
+                            }
 
                             RoomData.QueueRoomTest(abovepos);
                             if (Interlocked.Increment(ref this.treeDebrisSpawned) >= MaxTreeDebris) return;
@@ -546,21 +581,27 @@ namespace Eco.Mods.Organisms
                     this.ChopperUserID = damager is Player player ? player.User.Id : -1;
                     EcoSim.PlantSim.KillPlant(this, DeathType.Logging, true);
 
-                    if (World.GetBlock(this.Position.XYZi()).GetType() == this.Species.BlockType) World.DeleteBlock(this.Position.XYZi());
-                    this.stumpHealth = 0;
-                    //give tree resources
-                    if (user != null)
-                    {
-                        var changes = InventoryChangeSet.New(user.Inventory, user);
-                        var trunkResources = this.Species.TrunkResources;
-                        if (trunkResources != null) trunkResources.ForEach(x => changes.AddItems(x.Key, x.Value.RandInt));
-                        else DebugUtils.Fail("Trunk resources missing for: " + this.Species.Name);
-                        changes.TryApply();
-                    }
-                    this.RPC("DestroyStump");
+                    //trunk cleanup mod.
+                    if (user != null) {
+                        var loggingSkill = user.Skillset.GetSkill(typeof(LoggingSkill));
+                        if (LogDebrisStumpCleanup.config.Config.RemoveStumpEnabled && loggingSkill != null && loggingSkill.Level >= LogDebrisStumpCleanup.config.Config.RemoveStumpLogging)
+                        {
+                            if (World.GetBlock(this.Position.XYZi()).GetType() == this.Species.BlockType) World.DeleteBlock(this.Position.XYZi());
+                            this.stumpHealth = 0;
 
-                    // Let another plant grow here
-                    EcoSim.PlantSim.UpRootPlant(this);
+                            //give tree resources
+                            var changes = InventoryChangeSet.New(user.Inventory, user);
+                            var trunkResources = this.Species.TrunkResources;
+                            if (trunkResources != null) trunkResources.ForEach(x => changes.AddItems(x.Key, x.Value.RandInt));
+                            else DebugUtils.Fail("Trunk resources missing for: " + this.Species.Name);
+                            changes.TryApply();
+
+                            this.RPC("DestroyStump");
+
+                            // Let another plant grow here
+                            EcoSim.PlantSim.UpRootPlant(this);
+                        }
+                    }
                 }
 
                 this.MarkDirty();
@@ -674,7 +715,16 @@ namespace Eco.Mods.Organisms
             if (this.trunkPieces.Count > 0)
             {
                 foreach (var trunkPiece in this.trunkPieces)
-                    if (trunkPiece.IsValid) trunkInfo.Add(trunkPiece.ToInitialBson());
+                    if (trunkPiece.IsValid && !trunkPiece.Collected) trunkInfo.Add(trunkPiece.ToInitialBson());
+
+                if (this.trunkPieces.Count == 1 && this.trunkPieces[0].Collected)
+                {
+                    TrunkPiece fakePieceOne = new TrunkPiece() { ID = Guid.NewGuid(), SliceStart = 0f, SliceEnd = 1f, Collected = true };
+                    TrunkPiece fakePieceTwo = new TrunkPiece() { ID = Guid.NewGuid(), SliceStart = 1f, SliceEnd = 2f, Collected = true };
+
+                    trunkInfo.Add(fakePieceOne.ToInitialBson());
+                    trunkInfo.Add(fakePieceTwo.ToInitialBson());
+                }
             }
             bsonObj["trunks"] = trunkInfo;
 

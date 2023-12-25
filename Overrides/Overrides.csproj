@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Config\LogDebrisStump.eco.template" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Config\LogDebrisStump.eco.template" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Eco.Core">
       <HintPath>..\Dependencies\Eco.Core.dll</HintPath>
     </Reference>

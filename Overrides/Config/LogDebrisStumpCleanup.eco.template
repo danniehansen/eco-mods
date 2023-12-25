@@ -1,0 +1,8 @@
+﻿{
+    "CleanDebrisEnabled": true,
+    "CleanDebrisLogging": 0,
+    "RemoveStumpEnabled": true,
+    "RemoveStumpLogging": 0,
+    "PickupTrunkEnabled": true,
+    "PickupTrunkLogging": 0
+}
